@@ -16,11 +16,17 @@ export default class Renderer {
     this.frameCount = 0;
     this.halt = false;
 
-    this.backgroundColor = 'rgba(37, 38, 35, 1.0)';
+    // colors
+    this.backgroundColor = 'rgba(15, 15, 15, 1.0)';
     this.noteOnColor = 'rgba(255, 255, 255, 1.0)';
     this.mouseOnColor = 'rgba(150, 150, 150, 1.0)';
     this.noteOnCurrentColor = 'rgba(255, 100, 100, 1.0)';
-    this.boxColor = 'rgba(200, 200, 200, 1.0)';
+    this.darkColor = 'rgba(30, 30, 30, 1.0)';
+    this.whiteColor = '#ffffff';
+    this.greenColor = '#00b894';
+
+
+
     this.extendAlpha = 0;
     this.currentUpdateDir = 0;
     this.selectedLatent = 20;
@@ -121,7 +127,7 @@ export default class Renderer {
     if (this.instructionState === 3) {
       ctx.save();
       ctx.translate(-w * 0.5, 0);
-      ctx.fillStyle = '#FFF';
+      ctx.fillStyle = this.whiteColor;
       ctx.textAlign = 'end';
       ctx.fillText('Press the squares', 0, -2 * h * ratio);
       ctx.fillText('listen to the', 0, -h * ratio);
@@ -130,16 +136,16 @@ export default class Renderer {
       ctx.fillText('the two songs', 0, 2 * h * ratio);
       ctx.restore();
     } else if (this.instructionState < 2) {
-      ctx.save();
-      ctx.translate(-w * 0.5, 0);
-      ctx.fillStyle = '#FFF';
-      ctx.textAlign = 'end';
-      ctx.fillText('The blinking square\'s', 0, -2 * h * ratio);
-      ctx.fillText('position indicate the', 0, -h * ratio);
-      ctx.fillText('different ratio', 0, 0);
-      ctx.fillText('in mixing of', 0, h * ratio);
-      ctx.fillText('the two songs', 0, 2 * h * ratio);
-      ctx.restore();
+      // ctx.save();
+      // ctx.translate(-w * 0.5, 0);
+      // ctx.fillStyle = this.whiteColor;
+      // ctx.textAlign = 'end';
+      // ctx.fillText('The blinking square\'s', 0, -2 * h * ratio);
+      // ctx.fillText('position indicate the', 0, -h * ratio);
+      // ctx.fillText('different ratio', 0, 0);
+      // ctx.fillText('in mixing of', 0, h * ratio);
+      // ctx.fillText('the two songs', 0, 2 * h * ratio);
+      // ctx.restore();
     }
 
     // start drawing
@@ -148,9 +154,9 @@ export default class Renderer {
       ctx.save();
       const j = i - (this.matrix.length / 2);
       ctx.translate(0, h_step * (j + 0.25));
-      ctx.fillStyle = '#555';
+      ctx.fillStyle = this.darkColor;
       if (i === this.sectionIndex) {
-        ctx.fillStyle = lerpColor('#555555', '#FF0000', Math.pow(Math.sin(this.frameCount * 0.05), 2));
+        ctx.fillStyle = lerpColor(this.backgroundColor, this.greenColor, Math.pow(Math.sin(this.frameCount * 0.05), 2));
       }
       ctx.fillRect(0, 0, w * 0.4, h_step * 0.5);
       ctx.restore();

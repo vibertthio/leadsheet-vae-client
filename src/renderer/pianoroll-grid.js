@@ -14,7 +14,10 @@ export default class PianorollGrid {
     this.gridHeight = 0;
     this.gridXShift = 0;
     this.gridYShift = 0;
-    this.noteOnColor = 'rgba(255, 255, 255, 1.0)';
+
+    this.darkColor = 'rgba(30, 30, 30, 1.0)';
+    this.whiteColor = '#ffffff';
+    this.greenColor = '#00b894';
 
     this.yShiftRatio = ysr;
 
@@ -107,11 +110,7 @@ export default class PianorollGrid {
       this.gridWidth * this.frameRatio,
       this.gridHeight * this.frameRatio,
     );
-    this.drawBling(
-      ctx,
-      this.gridWidth * this.frameRatio - 15,
-      this.gridHeight * this.frameRatio - 12,
-    );
+
     ctx.save();
     ctx.translate(-w * 0.5, -h * 0.5);
 
@@ -137,9 +136,9 @@ export default class PianorollGrid {
               this.currentChordYShift = 1;
             }
             ctx.translate(0, this.currentChordYShift * -5);
-            ctx.fillStyle = '#F00';
+            ctx.fillStyle = this.greenColor;
           } else {
-            ctx.fillStyle = '#FFF';
+            ctx.fillStyle = this.whiteColor;
           }
           if (c !== prevC) {
             ctx.fillText(c, 5, -8);
@@ -173,17 +172,18 @@ export default class PianorollGrid {
           this.currentNoteYShift = 1;
           this.currentNoteIndex = index;
         }
-        ctx.fillStyle = '#FFF';
+        ctx.fillStyle = this.whiteColor;
         ctx.fillText(note, 5, -8);
-        ctx.fillStyle = '#F00';
+        ctx.fillStyle = this.greenColor;
         ctx.translate(0, this.currentNoteYShift * -2);
         // stretch
         // wStepDisplay *= (1 + this.currentNoteYShift * 0.1)
       } else {
-        ctx.fillStyle = this.noteOnColor;
+        ctx.fillStyle = this.whiteColor;
       }
 
       ctx.fillRect(0, 0, wStepDisplay * (end - start + 1), hStep);
+
 
       ctx.restore();
     });
@@ -192,7 +192,7 @@ export default class PianorollGrid {
     if ((this.fixed === -1 || this.checkCurrent())
       && (this.isPlaying() || b > 0)) {
       ctx.translate((b % 192) * wStep, 0);
-      ctx.strokeStyle = '#F00';
+      ctx.strokeStyle = this.greenColor;
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.lineTo(0, h);
@@ -203,7 +203,15 @@ export default class PianorollGrid {
 
     }
     ctx.restore();
+
+    this.drawBling(
+      ctx,
+      this.gridWidth * this.frameRatio - 15,
+      this.gridHeight * this.frameRatio - 12,
+    );
     this.drawInstructionText(ctx, h, w);
+
+
 
     ctx.restore();
   }
@@ -262,18 +270,12 @@ export default class PianorollGrid {
 
   drawBling(ctx, w, h) {
     if (this.showingInstruction) {
+      const width = w * 0.3;
+      const height = h * 0.35;
       ctx.save();
-      ctx.translate(-0.5 * w, -0.5 * h);
-      ctx.fillStyle = '#555';
-      // ctx.fillStyle = lerpColor(
-      //   '#555555',
-      //   '#AA0000',
-      //   Math.pow(
-      //     Math.sin(this.renderer.frameCount * 0.03),
-      //     2,
-      //   ),
-      // );
-      roundedRect(ctx, 0, 0, w, h, 5);
+      ctx.translate(-0.5 * width, -0.5 * height);
+      ctx.fillStyle = this.darkColor;
+      roundedRect(ctx, 0, 0, width, height, 5);
       ctx.restore();
     }
   }
@@ -287,33 +289,41 @@ export default class PianorollGrid {
 
       if (this.fixed === 0) {
         ctx.fillStyle = lerpColor(
-          '#FFFFFF',
-          '#FF0000',
+          this.whiteColor,
+          this.greenColor,
           Math.pow(
             Math.sin(this.renderer.frameCount * 0.03),
             2,
           ),
         );
         ctx.fillText('Press here!', 0, -h * ratio);
-        ctx.fillStyle = '#FFF';
+        ctx.fillStyle = this.whiteColor;
         ctx.fillText('Listen to the first song', 0, h * ratio);
       } else if (this.fixed === this.matrix.length - 1) {
         ctx.fillStyle = lerpColor(
-          '#FFFFFF',
-          '#FF0000',
+          this.whiteColor,
+          this.greenColor,
           Math.pow(
             Math.sin(this.renderer.frameCount * 0.05),
             2,
           ),
         );
         ctx.fillText('Press here!', 0, -h * ratio);
-        ctx.fillStyle = '#FFF';
+        ctx.fillStyle = this.whiteColor;
         ctx.fillText('Listen to the second song', 0, h * ratio);
       } else if (this.fixed === -1) {
-        ctx.fillStyle = '#FFF';
+        ctx.fillStyle = lerpColor(
+          this.whiteColor,
+          this.greenColor,
+          Math.pow(
+            Math.sin(this.renderer.frameCount * 0.05),
+            2,
+          ),
+        );
         ctx.fillText('Press here!', 0, -h * ratioMiddle);
-        ctx.fillText('Listen to the mixing', 0, 0);
-        ctx.fillText('of two melodies', 0, h * ratioMiddle);
+        ctx.fillStyle = this.whiteColor;
+        ctx.fillText('Listen to the mixing of two melodies', 0, 0);
+        // ctx.fillText('', 0, h * ratioMiddle);
       }
 
       ctx.restore();

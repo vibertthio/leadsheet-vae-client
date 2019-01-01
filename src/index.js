@@ -7,17 +7,22 @@ import Sound from './music/sound';
 import Renderer from './renderer/renderer';
 import playSvg from './assets/play.png';
 import pauseSvg from './assets/pause.png';
+import shufflePng from './assets/shuffle.png';
+import sig from './assets/sig.png';
+
 
 class App extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
+      slash: true,
       open: false,
       playing: false,
       dragging: false,
       loadingProgress: 0,
-      loadingSamples: false,
+      instructionStage: 0,
+      loading: true,
       currentTableIndex: 4,
       rhythmThreshold: 0.6,
       bpm: 120,
@@ -43,7 +48,7 @@ class App extends Component {
 
   componentDidMount() {
     this.renderer = new Renderer(this.canvas);
-    if (!this.state.loadingSamples) {
+    if (!this.state.loading) {
       this.renderer.draw(this.state.screen);
     }
     window.addEventListener('keydown', this.onKeyDown.bind(this), false);
@@ -128,7 +133,7 @@ class App extends Component {
         this.changeMatrix(r['melody']);
         this.changeChords(r['chord']);
         this.bpms = r['tempo'];
-        console.log(r);
+        // console.log(r);
         if (restart) {
           this.start();
           this.sound.changeSection(0);
@@ -138,6 +143,10 @@ class App extends Component {
         if (this.renderer.instructionState === 0) {
           this.renderer.pianorollGrids[0].showingInstruction = true;
         }
+
+        this.setState({
+          loading: false,
+        });
       })
       .catch(e => console.log(e));
   }
@@ -244,8 +253,8 @@ class App extends Component {
 
   onKeyDown(event) {
     event.stopPropagation();
-    const { loadingSamples } = this.state;
-    if (!loadingSamples) {
+    const { loading } = this.state;
+    if (!loading) {
       if (event.keyCode === 32) {
         // space
         this.trigger();
@@ -321,6 +330,7 @@ class App extends Component {
       playing: true,
     });
   }
+
   stop() {
     this.sound.stop();
     this.renderer.playing = false;
@@ -329,17 +339,71 @@ class App extends Component {
     });
   }
 
+  onPlay() {
+    // console.log('press play!');
+
+    const id = 'splash';
+    const splash = document.getElementById(id);
+    splash.style.opacity = 0.0;
+    setTimeout(() => {
+      splash.style.display = 'none';
+      this.setState({
+        slash: false,
+      });
+    }, 500);
+  }
+
   render() {
-    const loadingText = `loading..${this.state.loadingProgress}/9`;
-    const { playing, currentTableIndex } = this.state;
+    const { loading, instructionStage } = this.state;
+    const loadingText = loading ? 'loading...' : 'play';
     const arr = Array.from(Array(9).keys());
     const mat = Array.from(Array(9 * 16).keys());
     const { rhythmThreshold, bpm } = this.state;
     return (
       <div>
+        <section className={styles.splash} id="splash">
+          <div className={styles.wrapper}>
+            <h1>🎛<br />Song<br />Mashup</h1>
+            <h2>
+              = melody + chords + mix
+            </h2>
+            <div className="device-supported">
+              <p className={styles.description}>
+                An interactive demo based on latent vector to generate drum pattern.
+                Modify the 32-dim latent vector to produce new drum patterns, and vice versa.
+              </p>
+
+              <button
+                className={styles.playButton}
+                id="splash-play-button"
+                onClick={() => this.onPlay()}
+              >
+                {loadingText}
+              </button>
+
+              <p className={styles.builtWith}>
+                Built with tone.js + Flask.
+                <br />
+                Learn more about <a className={styles.about} target="_blank" href="https://github.com/vibertthio/drum-vae-client">how it works.</a>
+              </p>
+
+              <p>Made by</p>
+              <img className="splash-icon" src={sig} width="100" height="auto" alt="Vibert Thio Icon" />
+            </div>
+          </div>
+          <div className={styles.badgeWrapper}>
+            <a className={styles.magentaLink} href="http://musicai.citi.sinica.edu.tw/" target="_blank" >
+              <div>Music and AI Lab</div>
+            </a>
+          </div>
+          <div className={styles.privacy}>
+            <a href="https://github.com/vibertthio/drum-vae-client" target="_blank">Privacy &amp; </a>
+            <a href="https://github.com/vibertthio/drum-vae-client" target="_blank">Terms</a>
+          </div>
+        </section>
         <div className={styles.title}>
           <a href="https://github.com/vibertthio" target="_blank" rel="noreferrer noopener">
-            Melody VAE | MAC Lab
+            Song Mashup
           </a>
           <button
             className={styles.btn}
@@ -348,9 +412,15 @@ class App extends Component {
           >
             <img alt="info" src={info} />
           </button>
+          <div className={styles.tips} id="tips">
+            {instructionStage < 2 ? <p>🙋‍♀️Tips</p> : ''}
+            {instructionStage === 0 ? (<p>👇The <font color="#00b894">blinking square</font> indicate the different ratio of the mixed melody</p>) : ''}
+            {instructionStage === 1 ? (<p>👇Click on the <font color="#2ecc71">drum patterns</font> to test the encoder</p>) : ''}
+            {instructionStage === 2 ? <p>🎉Have fun!</p> : ''}
+          </div>
         </div>
         <div>
-          {this.state.loadingSamples && (
+          {this.state.loading && (
             <div className={styles.loadingText}>
               <p>{loadingText}</p>
             </div>
@@ -381,6 +451,9 @@ class App extends Component {
                   (<img src={pauseSvg} width="30" height="30" alt="submit" />)
               }
             </button>
+            <button onClick={() => this.getLeadsheetVaeRandom()} onKeyDown={e => e.preventDefault()}>
+              <img src={shufflePng} width="25" height="25" alt="shuffle" />
+            </button>
             <input type="range" min="60" max="180" value={bpm} onChange={this.handleChangeBpmValue.bind(this)}/>
           </div>
         </div>
@@ -393,7 +466,7 @@ class App extends Component {
           <button className={styles.overlayBtn} onClick={() => this.handleClickMenu()} />
           <div className={styles.intro}>
             <p>
-              <strong>$ Drum VAE $</strong>
+              <strong>$ Song Mashup $</strong>
               <br />Show the interpolation between two melodies. Made by{' '}
               <a href="https://vibertthio.com/portfolio/" target="_blank" rel="noreferrer noopener">
                 Vibert Thio
