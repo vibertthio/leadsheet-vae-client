@@ -31,6 +31,10 @@ class App extends Component {
         height: window.innerHeight,
         ratio: window.devicePixelRatio || 1,
       },
+      songs: [
+        'blank',
+        'blank',
+      ],
     };
 
     this.sound = new Sound(this),
@@ -47,15 +51,15 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.renderer = new Renderer(this.canvas);
+    this.renderer = new Renderer(this, this.canvas);
     if (!this.state.loading) {
       this.renderer.draw(this.state.screen);
     }
     window.addEventListener('keydown', this.onKeyDown.bind(this), false);
     window.addEventListener('resize', this.handleResize.bind(this, false));
     window.addEventListener('mousedown', this.handleMouseDown.bind(this));
+    window.addEventListener('mousemove', this.handleMouseMove.bind(this));
     // window.addEventListener('click', this.handleClick.bind(this));
-    // window.addEventListener('mousemove', this.handleMouseMove.bind(this));
     // window.addEventListener('mouseup', this.handleMouseUp.bind(this));
 
     requestAnimationFrame(() => { this.update() });
@@ -65,8 +69,8 @@ class App extends Component {
   componentWillUnmount() {
     window.removeEventListener('keydown', this.onKeyDown.bind(this));
     window.removeEventListener('mousedown', this.handleMouseDown.bind(this));
+    window.removeEventListener('mousemove', this.handleMouseMove.bind(this));
     // window.removeEventListener('click', this.handleClick.bind(this));
-    // window.removeEventListener('mousemove', this.handleMouseMove.bind(this));
     // window.removeEventListener('mouseup', this.handleMouseUp.bind(this));
     window.removeEventListener('resize', this.handleResize.bind(this, false));
   }
@@ -90,7 +94,7 @@ class App extends Component {
   }
 
   postChangeThreshold(amt = 0.3, restart = false) {
-    const url = this.serverUrl + 'api/content';
+    const url = this.serverUrl + 'api/theta';
     fetch(url, {
       method: 'POST', // *GET, POST, PUT, DELETE, etc.
       headers: {
@@ -133,7 +137,7 @@ class App extends Component {
         this.changeMatrix(r['melody']);
         this.changeChords(r['chord']);
         this.bpms = r['tempo'];
-        // console.log(r);
+        console.log(r);
         if (restart) {
           this.start();
           this.sound.changeSection(0);
@@ -145,7 +149,9 @@ class App extends Component {
         }
 
         this.setState({
+          songs: r['songnames'],
           loading: false,
+          rhythmThreshold: r['theta'],
         });
       })
       .catch(e => console.log(e));
@@ -158,7 +164,7 @@ class App extends Component {
       s2 = Math.floor(Math.random() * 4);
     }
 
-    console.log(`s1: ${s1}, s2: ${s2}`);
+    // console.log(`s1: ${s1}, s2: ${s2}`);
     s1 = s1.toString();
     s2 = s2.toString();
 
@@ -193,37 +199,41 @@ class App extends Component {
 
   handleMouseDown(e) {
     e.stopPropagation();
-    const [onInterpolation, onPianoroll] = this.renderer.handleMouseDown(e);
-    if (onInterpolation) {
-      const { playing } = this.state;
-      this.sound.changeSection(this.renderer.sectionIndex);
-      this.sound.loop = true;
-      if (!playing) {
-        this.start();
-      }
-    } else if (onPianoroll === 3) {
-      const { playing } = this.state;
-      this.sound.changeSection(Math.floor(this.matrix.length / 2));
-      this.sound.loop = true;
-      if (!playing) {
-        this.start();
-      }
-    }
+    if (!this.state.slash) {
+      const [onInterpolation, onPianoroll] = this.renderer.handleMouseDown(e);
+      if (onInterpolation) {
+        const { playing } = this.state;
+        this.sound.changeSection(this.renderer.sectionIndex);
+        this.sound.loop = true;
+        if (!playing) {
+          this.start();
+        }
+      } else if (onPianoroll === 3) {
 
-    if (onPianoroll === 0) {
-      this.sound.loop = false;
-      this.sound.changeSection(0);
-      this.start();
-    } else if (onPianoroll === 2) {
-      this.sound.loop = false;
-      this.sound.changeSection(this.matrix.length - 1);
-      this.start();
-    } else if (onPianoroll === 1) {
-      const { playing } = this.state;
-      this.sound.changeSection(this.renderer.sectionIndex);
-      this.sound.loop = true;
-      if (!playing) {
+        const { playing } = this.state;
+        // this.sound.changeSection(Math.floor(this.matrix.length / 2));
+        this.sound.changeSection(0);
+        this.sound.loop = true;
+        if (!playing) {
+          this.start();
+        }
+      }
+
+      if (onPianoroll === 0) {
+        this.sound.loop = false;
+        this.sound.changeSection(0);
         this.start();
+      } else if (onPianoroll === 2) {
+        this.sound.loop = false;
+        this.sound.changeSection(this.matrix.length - 1);
+        this.start();
+      } else if (onPianoroll === 1) {
+        const { playing } = this.state;
+        this.sound.changeSection(this.renderer.sectionIndex);
+        this.sound.loop = true;
+        if (!playing) {
+          this.start();
+        }
       }
     }
   }
@@ -235,11 +245,7 @@ class App extends Component {
 
   handleMouseMove(e) {
     e.stopPropagation();
-    if (this.state.dragging) {
-      this.renderer.handleMouseMoveOnGraph(e);
-    } else {
-      this.renderer.handleMouseMove(e);
-    }
+    this.renderer.handleMouseMove(e);
   }
 
   handleClickMenu() {
@@ -306,7 +312,7 @@ class App extends Component {
     const v = e.target.value;
     // 0~100 -> 60~120
     const bpm = v;
-    console.log(`bpm changed: ${bpm}`);
+    // console.log(`bpm changed: ${bpm}`);
     this.setState({ bpm });
     this.sound.changeBpm(bpm);
   }
@@ -354,11 +360,12 @@ class App extends Component {
   }
 
   render() {
-    const { loading, instructionStage } = this.state;
+    const { loading, instructionStage, songs } = this.state;
     const loadingText = loading ? 'loading...' : 'play';
     const arr = Array.from(Array(9).keys());
     const mat = Array.from(Array(9 * 16).keys());
     const { rhythmThreshold, bpm } = this.state;
+    const songsString = `${songs[0].substring(0, songs[0].length - 5)} → ${songs[1].substring(0, songs[1].length - 5)}`;
     return (
       <div>
         <section className={styles.splash} id="splash">
@@ -402,9 +409,11 @@ class App extends Component {
           </div>
         </section>
         <div className={styles.title}>
-          <a href="https://github.com/vibertthio" target="_blank" rel="noreferrer noopener">
-            Song Mashup
-          </a>
+          <div className={styles.link}>
+            <a href="https://github.com/vibertthio" target="_blank" rel="noreferrer noopener">
+              Song Mashup
+            </a>
+          </div>
           <button
             className={styles.btn}
             onClick={() => this.handleClickMenu()}
@@ -413,10 +422,8 @@ class App extends Component {
             <img alt="info" src={info} />
           </button>
           <div className={styles.tips} id="tips">
-            {instructionStage < 2 ? <p>🙋‍♀️Tips</p> : ''}
-            {instructionStage === 0 ? (<p>👇The <font color="#00b894">blinking square</font> indicate the different ratio of the mixed melody</p>) : ''}
-            {instructionStage === 1 ? (<p>👇Click on the <font color="#2ecc71">drum patterns</font> to test the encoder</p>) : ''}
-            {instructionStage === 2 ? <p>🎉Have fun!</p> : ''}
+            {instructionStage < 2 ? <p>{songsString}</p> : ''}
+            {/* {instructionStage === 0 ? (<p>👇The <font color="#00b894">blinking square</font> indicate the different ratio of the mixed melody</p>) : ''} */}
           </div>
         </div>
         <div>

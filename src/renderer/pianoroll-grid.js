@@ -114,6 +114,7 @@ export default class PianorollGrid {
     ctx.save();
     ctx.translate(-w * 0.5, -h * 0.5);
 
+    this.drawSongName(ctx);
 
     // roll
     const wStep = w / (48 * 4);
@@ -216,6 +217,21 @@ export default class PianorollGrid {
     ctx.restore();
   }
 
+  drawSongName(ctx) {
+    const { songs } = this.renderer.app.state;
+    let name = 'mixed';
+    if (this.fixed === 0) {
+      name = songs[0].substring(0, songs[0].length - 5);
+    } else if (this.fixed === this.matrix.length - 1) {
+      name = songs[1].substring(0, songs[1].length - 5);
+    }
+    ctx.save();
+    ctx.translate(-5, -10);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.fillText(name, 0, 0);
+    ctx.restore();
+  }
+
   isPlaying() {
     return this.renderer.playing;
   }
@@ -235,34 +251,42 @@ export default class PianorollGrid {
   }
 
   drawFrame(ctx, w, h) {
+    let ratio = 1;
+
+    if (this.showingInstruction) {
+      ratio *= 1 + Math.sin(this.renderer.frameCount * 0.12) * 0.012;
+    }
+
     const unit = this.renderer.dist * 0.04;
+    const displayW = w * ratio;
+    const displayH = h * ratio;
 
     ctx.save();
 
     ctx.strokeStyle = '#FFF';
 
     ctx.beginPath()
-    ctx.moveTo(0.5 * w, 0.5 * h - unit);
-    ctx.lineTo(0.5 * w, 0.5 * h);
-    ctx.lineTo(0.5 * w - unit, 0.5 * h);
+    ctx.moveTo(0.5 * displayW, 0.5 * displayH - unit);
+    ctx.lineTo(0.5 * displayW, 0.5 * displayH);
+    ctx.lineTo(0.5 * displayW - unit, 0.5 * displayH);
     ctx.stroke();
 
     ctx.beginPath()
-    ctx.moveTo(-0.5 * w, 0.5 * h - unit);
-    ctx.lineTo(-0.5 * w, 0.5 * h);
-    ctx.lineTo(-0.5 * w + unit, 0.5 * h);
+    ctx.moveTo(-0.5 * displayW, 0.5 * displayH - unit);
+    ctx.lineTo(-0.5 * displayW, 0.5 * displayH);
+    ctx.lineTo(-0.5 * displayW + unit, 0.5 * displayH);
     ctx.stroke();
 
     ctx.beginPath()
-    ctx.moveTo(0.5 * w, -0.5 * h + unit);
-    ctx.lineTo(0.5 * w, -0.5 * h);
-    ctx.lineTo(0.5 * w - unit, -0.5 * h);
+    ctx.moveTo(0.5 * displayW, -0.5 * displayH + unit);
+    ctx.lineTo(0.5 * displayW, -0.5 * displayH);
+    ctx.lineTo(0.5 * displayW - unit, -0.5 * displayH);
     ctx.stroke();
 
     ctx.beginPath()
-    ctx.moveTo(-0.5 * w, -0.5 * h + unit);
-    ctx.lineTo(-0.5 * w, -0.5 * h);
-    ctx.lineTo(-0.5 * w + unit, -0.5 * h);
+    ctx.moveTo(-0.5 * displayW, -0.5 * displayH + unit);
+    ctx.lineTo(-0.5 * displayW, -0.5 * displayH);
+    ctx.lineTo(-0.5 * displayW + unit, -0.5 * displayH);
     ctx.stroke();
 
     ctx.restore();
@@ -270,12 +294,13 @@ export default class PianorollGrid {
 
   drawBling(ctx, w, h) {
     if (this.showingInstruction) {
-      const width = w * 0.3;
-      const height = h * 0.35;
+      const width = Math.max(300, w * 0.4);
+      const height = h * 0.4;
       ctx.save();
       ctx.translate(-0.5 * width, -0.5 * height);
-      ctx.fillStyle = this.darkColor;
-      roundedRect(ctx, 0, 0, width, height, 5);
+      // ctx.fillStyle = this.darkColor;
+      ctx.fillStyle = 'rgba(30, 30, 30, 0.8)';
+      roundedRect(ctx, 0, 0, width, height, 10);
       ctx.restore();
     }
   }
@@ -284,8 +309,7 @@ export default class PianorollGrid {
     if (this.showingInstruction) {
       ctx.save();
       ctx.textAlign = 'center';
-      const ratio = 0.014;
-      const ratioMiddle = ratio * 2.5;
+      const ratio = 0.017;
 
       if (this.fixed === 0) {
         ctx.fillStyle = lerpColor(
@@ -320,9 +344,9 @@ export default class PianorollGrid {
             2,
           ),
         );
-        ctx.fillText('Press here!', 0, -h * ratioMiddle);
+        ctx.fillText('Press here!', 0, -h * ratio);
         ctx.fillStyle = this.whiteColor;
-        ctx.fillText('Listen to the mixing of two melodies', 0, 0);
+        ctx.fillText('Listen to the mixing of two melodies', 0, h * ratio);
         // ctx.fillText('', 0, h * ratioMiddle);
       }
 

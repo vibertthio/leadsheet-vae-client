@@ -1,9 +1,10 @@
 import PianorollGrid from './pianoroll-grid';
 import { Noise } from 'noisejs';
-import { lerpColor } from './../utils/utils';
+import { lerpColor, roundedRect } from './../utils/utils';
 
 export default class Renderer {
-  constructor(canvas) {
+  constructor(app, canvas) {
+    this.app = app;
     this.canvas = canvas;
     this.matrix = [];
     this.chords = [];
@@ -17,7 +18,8 @@ export default class Renderer {
     this.halt = false;
 
     // colors
-    this.backgroundColor = 'rgba(15, 15, 15, 1.0)';
+    // this.backgroundColor = 'rgba(15, 15, 15, 1.0)';
+    this.backgroundColor = '#0d0d0d';
     this.noteOnColor = 'rgba(255, 255, 255, 1.0)';
     this.mouseOnColor = 'rgba(150, 150, 150, 1.0)';
     this.noteOnCurrentColor = 'rgba(255, 100, 100, 1.0)';
@@ -25,13 +27,13 @@ export default class Renderer {
     this.whiteColor = '#ffffff';
     this.greenColor = '#00b894';
 
-
-
     this.extendAlpha = 0;
     this.currentUpdateDir = 0;
     this.selectedLatent = 20;
     this.displayWidth = 0;
+    this.interpolationXShift = 0;
     this.h = 0;
+    this.mouseOnInterpolation = -1;
 
     this.pianorollGrids[0] = new PianorollGrid(this,  -1.5, 0);
     this.pianorollGrids[1] = new PianorollGrid(this,  0);
@@ -97,12 +99,14 @@ export default class Renderer {
     ctx.fillStyle = this.backgroundColor;
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    const h = Math.min(width, height) * 0.18;
-    const w = width * 0.5;
+    const h = height * 0.18;
+    const w = Math.min(700, width * 0.5);
+    // console.log(`w: ${w}`);
     this.h = h;
     this.displayWidth = w;
+    this.interpolationXShift = w * 0.55;
     this.dist = h * 1.2;
-    this.setFontSize(ctx, Math.pow(w / 800, 0.3));
+    this.setFontSize(ctx, Math.pow(w / 800, 0.4));
 
     ctx.translate(width * 0.5, height * 0.5);
 
@@ -110,14 +114,20 @@ export default class Renderer {
     this.pianorollGrids[1].draw(ctx, w * 0.9, h * 1.2);
     this.pianorollGrids[2].draw(ctx, w, h);
 
-    this.drawInterpolation(ctx, w * 0.1, h);
+    this.drawInterpolation(ctx, w * 0.12, h);
     ctx.restore();
   }
 
   drawInterpolation(ctx, w, h) {
     ctx.save();
-    ctx.translate(-(this.displayWidth) * 0.5, 0);
-    this.drawFrame(ctx, w * 1.1, h * 1.2 * 1.1);
+    ctx.translate(-(this.interpolationXShift), 0);
+    let breathRatio = 1 + Math.sin(this.frameCount * 0.08) * 0.03;
+    if (this.instructionState < 3) {
+      breathRatio = 1;
+    }
+    const frameW = w * 0.9 * breathRatio;
+    const frameH = h * 1.2 * 1.1 * breathRatio;
+    this.drawFrame(ctx, frameW, frameH);
     const h_step = (h / this.matrix.length) * 1.2;
     this.h_step = h_step;
 
@@ -129,11 +139,11 @@ export default class Renderer {
       ctx.translate(-w * 0.5, 0);
       ctx.fillStyle = this.whiteColor;
       ctx.textAlign = 'end';
-      ctx.fillText('Press the squares', 0, -2 * h * ratio);
-      ctx.fillText('listen to the', 0, -h * ratio);
-      ctx.fillText('different ratio', 0, 0);
-      ctx.fillText('in mixing of', 0, h * ratio);
-      ctx.fillText('the two songs', 0, 2 * h * ratio);
+      // ctx.fillText('Press the squares', 0, -2 * h * ratio);
+      // ctx.fillText('listen to the', 0, -h * ratio);
+      // ctx.fillText('different ratio', 0, 0);
+      // ctx.fillText('in mixing of', 0, h * ratio);
+      // ctx.fillText('the two songs', 0, 2 * h * ratio);
       ctx.restore();
     } else if (this.instructionState < 2) {
       // ctx.save();
@@ -149,16 +159,22 @@ export default class Renderer {
     }
 
     // start drawing
-    ctx.translate(-w * 0.2, 0);
+    const rectW = Math.min(w * 0.4, 45);
+    ctx.translate(-0.5 * rectW, 0);
     for (let i = 0; i < this.matrix.length; i += 1) {
       ctx.save();
       const j = i - (this.matrix.length / 2);
       ctx.translate(0, h_step * (j + 0.25));
       ctx.fillStyle = this.darkColor;
-      if (i === this.sectionIndex) {
-        ctx.fillStyle = lerpColor(this.backgroundColor, this.greenColor, Math.pow(Math.sin(this.frameCount * 0.05), 2));
+      if (i === this.mouseOnInterpolation) {
+        ctx.fillStyle = this.greenColor;
+      } else if (i === this.sectionIndex) {
+        const lerpRatio = Math.pow(Math.sin(this.frameCount * 0.05), 2);
+        ctx.fillStyle = lerpColor(this.backgroundColor, this.greenColor, lerpRatio);
       }
-      ctx.fillRect(0, 0, w * 0.4, h_step * 0.5);
+      // ctx.fillRect(0, 0, w * 0.4, h_step * 0.5);
+      roundedRect(ctx, 0, 0, rectW, h_step * 0.5, 5);
+
       ctx.restore();
     }
 
@@ -167,14 +183,14 @@ export default class Renderer {
   }
 
   handleInterpolationClick(x, y) {
-    const xpos = x + (this.displayWidth * 0.5);
+    const xpos = x + (this.interpolationXShift);
     const ypos = y;
     // console.log(`x: ${xpos}, y: ${ypos}`);
     if (Math.abs(xpos) < this.displayWidth * 0.1) {
       const even = ((this.matrix.length % 2) === 0) ? 0 : 0.5;
       const index = Math.floor((ypos / this.h_step) + even) + Math.floor(this.matrix.length / 2);
       if (index >= 0 && index < this.matrix.length) {
-        console.log(`click index: [${index}]`);
+        // console.log(`click index: [${index}]`);
         this.sectionIndex = index;
         return true;
       }
@@ -203,6 +219,10 @@ export default class Renderer {
         this.sectionIndex = 0;
         return 1;
       } else if (this.instructionState === 3) {
+        // this.sectionIndex = 0;
+        return 3;
+      } else if (this.instructionState === 4) {
+        // this.sectionIndex = 0;
         return 3;
       }
       return -1;
@@ -231,6 +251,20 @@ export default class Renderer {
   handleMouseMove(e) {
     const x = e.clientX - (this.width * 0.5);
     const y = e.clientY - (this.height * 0.5);
+
+    const xpos = x + (this.interpolationXShift);
+    const ypos = y;
+    if (Math.abs(xpos) < this.displayWidth * 0.1) {
+      const even = ((this.matrix.length % 2) === 0) ? 0 : 0.5;
+      const index = Math.floor((ypos / this.h_step) + even) + Math.floor(this.matrix.length / 2);
+      if (index >= 0 && index < this.matrix.length) {
+        // console.log(`click index: [${index}]`);
+        this.mouseOnInterpolation = index;
+      }
+    } else {
+      this.mouseOnInterpolation = -1;
+    }
+
   }
 
   // instruction
