@@ -370,7 +370,7 @@ class App extends Component {
       <div>
         <section className={styles.splash} id="splash">
           <div className={styles.wrapper}>
-            <h1>🎛<br />Song<br />Mashup</h1>
+            <h1>🎛<br />Song<br />Mixer</h1>
             <h2>
               = melody + chords + mix
             </h2>
@@ -411,7 +411,7 @@ class App extends Component {
         <div className={styles.title}>
           <div className={styles.link}>
             <a href="https://github.com/vibertthio" target="_blank" rel="noreferrer noopener">
-              Song Mashup
+              Song Mixer
             </a>
           </div>
           <button
