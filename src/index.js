@@ -376,8 +376,8 @@ class App extends Component {
             </h2>
             <div className="device-supported">
               <p className={styles.description}>
-                An interactive demo based on latent vector to generate drum pattern.
-                Modify the 32-dim latent vector to produce new drum patterns, and vice versa.
+                An interactive demo of a musical machine learning algorithm
+                which can interpolate between different songs (melody + chords).
               </p>
 
               <button
@@ -474,7 +474,8 @@ class App extends Component {
           <div className={styles.intro}>
             <p>
               <strong>$ Song Mashup $</strong>
-              <br />Show the interpolation between two melodies. Made by{' '}
+              <br />An interactive demo of a musical machine learning
+              algorithm which can interpolate between different songs (melody + chords). Made by{' '}
               <a href="https://vibertthio.com/portfolio/" target="_blank" rel="noreferrer noopener">
                 Vibert Thio
               </a>.{' Source code is on '}
