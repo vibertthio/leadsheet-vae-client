@@ -480,7 +480,7 @@ class App extends Component {
                 Vibert Thio
               </a>.{' Source code is on '}
               <a
-                href="https://github.com/vibertthio"
+                href="https://github.com/vibertthio/leadsheet-vae-client"
                 target="_blank"
                 rel="noreferrer noopener"
               >
