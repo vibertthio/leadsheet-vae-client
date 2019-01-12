@@ -3,7 +3,10 @@
 >  ### [play it](http://vibertthio.com/leadsheet-vae-client/)
 
 
-![](./assets/sc-02.png)
+
+![](./assets/flow.gif)
+
+
 
 ## Links
 
