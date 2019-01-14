@@ -472,10 +472,10 @@ class App extends Component {
         <div id="menu" className={styles.overlay}>
           <button className={styles.overlayBtn} onClick={() => this.handleClickMenu()} />
           <div className={styles.intro}>
+            <h3>$ 🎛 Song Mixer $</h3>
             <p>
-              <strong>$ Song Mashup $</strong>
-              <br />An interactive demo of a musical machine learning
-              algorithm which can interpolate between different songs (melody + chords). Made by{' '}
+              🎉An interactive demo of a musical machine learning
+              algorithm which can interpolate between different songs (melody + chords). Made by Paul and{' '}
               <a href="https://vibertthio.com/portfolio/" target="_blank" rel="noreferrer noopener">
                 Vibert Thio
               </a>.{' Source code is on '}
@@ -487,11 +487,11 @@ class App extends Component {
                 GitHub.
               </a>
             </p>
+            <h3>$ 🙋How to use $</h3>
             <p>
-              <strong>$ How to use $</strong>
-              <br /> [space]: start/play the music
-              <br /> [clikc]: click on grids, to change interpolation
-              <br /> [r] : change the melody
+              🧡[space]: start/play the music
+              <br />👇[clikc]: click on grids, to change interpolation
+              <br />⌨️[r] : change the melody
             </p>
           </div>
           <button className={styles.overlayBtn} onClick={() => this.handleClickMenu()} />

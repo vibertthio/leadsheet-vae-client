@@ -208,6 +208,19 @@ $range-label-width: 60px !default;
     max-width: 350px;
     margin: 0rem auto;
 
+    h3 {
+      z-index: 3;
+      font-size: 1.3rem;
+      letter-spacing: 0.1rem;
+
+      font-family: $font-default;
+      color: #ffffff;
+      @media screen and (max-width: 650px) {
+        line-height: 1rem;
+        font-size: 0.8rem;
+        margin: 0.5rem 2rem;
+      }
+    }
     p {
       // strong {
       //   font-size: 3.0rem;

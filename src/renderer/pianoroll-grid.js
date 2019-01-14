@@ -192,17 +192,26 @@ export default class PianorollGrid {
     // progress
     if ((this.fixed === -1 || this.checkCurrent())
       && (this.isPlaying() || b > 0)) {
+      ctx.save();
       ctx.translate((b % 192) * wStep, 0);
       ctx.strokeStyle = this.greenColor;
+      ctx.fillStyle = this.greenColor;
+
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.lineTo(0, h);
       ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, h * 0.015, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(0, h, h * 0.015, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
 
-    if (this.fixed === 0) {
-
-    }
     ctx.restore();
 
     this.drawBling(
