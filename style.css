@@ -155,6 +155,17 @@ body {
   .index-module__overlay___1Tmco .index-module__intro___Ipvau {
     max-width: 350px;
     margin: 0rem auto; }
+    .index-module__overlay___1Tmco .index-module__intro___Ipvau h3 {
+      z-index: 3;
+      font-size: 1.3rem;
+      letter-spacing: 0.1rem;
+      font-family: monospace, Arial, sans-serif;
+      color: #ffffff; }
+      @media screen and (max-width: 650px) {
+        .index-module__overlay___1Tmco .index-module__intro___Ipvau h3 {
+          line-height: 1rem;
+          font-size: 0.8rem;
+          margin: 0.5rem 2rem; } }
     .index-module__overlay___1Tmco .index-module__intro___Ipvau p {
       z-index: 3;
       font-size: 1.0rem;
