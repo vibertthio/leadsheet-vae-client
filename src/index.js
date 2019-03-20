@@ -45,9 +45,9 @@ class App extends Component {
     this.rawMatrix = [];
     this.beat = 0;
     // this.serverUrl = 'http://140.109.21.193:5003/';
-    // this.serverUrl = 'http://140.109.135.76:5003/';
+    this.serverUrl = 'http://140.109.135.76:5001/';
     // this.serverUrl = 'http://140.109.16.227:5003/';
-    this.serverUrl = 'http://musicai.citi.sinica.edu.tw/songmashup/';
+    // this.serverUrl = 'http://musicai.citi.sinica.edu.tw/songmashup/';
   }
 
   componentDidMount() {
@@ -77,7 +77,7 @@ class App extends Component {
 
   changeMatrix(mat) {
     this.rawMatrix = mat;
-    this.updateMatrix()
+    this.updateMatrix();
   }
 
   changeChords(c) {
